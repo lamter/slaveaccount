@@ -108,3 +108,4 @@ venv.bak/
 
 # project
 tmp/
+bin/
