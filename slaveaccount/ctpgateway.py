@@ -20,6 +20,7 @@ try:
     from Queue import Queue, Empty
 except ImportError:
     from queue import Queue, Empty
+from slavem import Reporter
 
 from .gateway import Gateway
 from .constant import *
@@ -71,6 +72,17 @@ class CtpGateway(Gateway):
 
         self.saveQueue = Queue()  # VtSaveMongodbData
         self.saveForever = Thread(name='save', target=self._save)
+
+        self.slavemReport = Reporter(
+            name=config.get('slavem', 'name'),
+            type=config.get('slavem', 'type'),
+            host=config.get('slavem', 'host'),
+            port=config.getint('slavem', 'port'),
+            dbn=config.get('slavem', 'dbn'),
+            username=config.get('slavem', 'username'),
+            password=config.get('slavem', 'password'),
+            localhost=config.get('slavem', 'localhost'),
+        )
 
     def run(self):
         self.dbconnect()
@@ -175,16 +187,20 @@ class CtpGateway(Gateway):
         self.setQryAccountTimer()
         if not self.saveAccountTimer:
             # 还没有计时器
-            self.setSavePositionTimer()
+            self.setSaveAccountTimer()
         elif self.saveAccountTimer.isAlive():
             # 已经有计时器了
             pass
         else:
             # 已经有计时器了，但是已经触发了
-            self.setSavePositionTimer()
+            self.setSaveAccountTimer()
+
+        # 收到了响应，汇报启动完成
+        self.slavemReport.lanuchReport()
+
         return super(CtpGateway, self).onAccount(account)
 
-    def setSavePositionTimer(self):
+    def setSaveAccountTimer(self):
         # 设置1分钟后存库
         def foo():
             document = self.account.__dict__.copy()
@@ -205,8 +221,12 @@ class CtpGateway(Gateway):
                 'tradingDay': tradeday,
             }
             # 日净值
-            vtSave = VtSaveMongodbData(self.balanceDailyCol.update_one, (_filter, {'$set': documentDaily},), {'upsert': True})
+            vtSave = VtSaveMongodbData(self.balanceDailyCol.update_one, (_filter, {'$set': documentDaily},),
+                                       {'upsert': True})
             self.saveQueue.put(vtSave)
+
+            # 心跳
+            self.slavemReport.heartBeat()
 
         moment = now = dt.datetime.now()
         wait = 0
@@ -284,8 +304,11 @@ class CtpGateway(Gateway):
     def setQryTransferSerialTimer(self):
         # 每分钟查询一次
         def foo():
-            q = VtQuery(self.qryTransferSerial)
-            self.qryQueue.put(q)
+            try:
+                q = VtQuery(self.qryTransferSerial)
+                self.qryQueue.put(q)
+            except Exception:
+                self.logger.error(traceback.format_exc())
 
         if self.qryTransferSerialTimer:
             self.qryTransferSerialTimer.cancel()
@@ -297,11 +320,22 @@ class CtpGateway(Gateway):
     def close(self):
         """关闭"""
         self.stoped.set()
+        self.qryAccountTimer.close()
 
         if self.mdConnected:
             self.mdApi.close()
         if self.tdConnected:
             self.tdApi.close()
+
+        # 等待进程完成
+        if self.queryForever.isAlive():
+            self.queryForever.join(timeout=3)
+        if self.saveForever.isAlive():
+            self.saveForever.join(timeout=3)
+
+        # 停止心跳
+        self.slavemReport.endHeartBeat()
+        self.logger.info(u'关闭心跳')
 
     # ----------------------------------------------------------------------
     def initQuery(self):
@@ -352,13 +386,24 @@ class CtpGateway(Gateway):
         将数据存库
         :return:
         """
-        while not self.stoped.wait(0):
-            try:
-                vtSave = self.saveQueue.get(timeout=1)
-            except Empty:
-                continue
+
+        def foo():
+            vtSave = self.saveQueue.get(timeout=1)
 
             try:
                 vtSave.func(*vtSave.args, **vtSave.kwargs)
             except Exception:
                 self.logger.error(traceback.format_exc())
+
+        while not self.stoped.wait(1):
+            try:
+                foo()
+            except Empty:
+                continue
+
+        while True:
+            try:
+                foo()
+            except Empty:
+                break
+
