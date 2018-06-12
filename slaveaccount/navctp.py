@@ -1,8 +1,12 @@
 # coding:utf-8
 import arrow
 import pandas as pd
+import os
+import matplotlib.pyplot as plt
+
 from .ctp import defineDict
 from myplot.nav import draw_nav
+
 
 class Navctp(object):
     """
@@ -124,9 +128,24 @@ class Navctp(object):
             return self._max
 
         df['_max'] = df['nav'].apply(getMax)
-        df['drawdown'] = df['nav'] / df['_max'] - 1
+        df['dropdown'] = df['nav'] / df['_max'] - 1
 
         self.navDF = df
+
+    def draw(self):
+        """
+        :return:
+        """
+        # 绘制净值图
+        path = self.config.get('CTP', 'navfigpath')
+        with draw_nav(self.navDF['nav'], u'净值') as subplot:
+            fn = u'{}_nav.png'.format(self.userID)
+            plt.savefig(os.path.join(path, fn))
+
+        # 绘制回撤图
+        with draw_nav(self.navDF['dropdown'], u'回撤') as subplot:
+            fn = u'{}_dropdown.png'.format(self.userID)
+            plt.savefig(os.path.join(path, fn))
 
     def run(self):
         """
@@ -143,3 +162,4 @@ class Navctp(object):
         self.calNav()
 
         # 生成图片
+        self.draw()
