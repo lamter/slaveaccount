@@ -7,11 +7,10 @@ vn.ctp的gateway接入
 vtSymbol直接使用symbol
 '''
 import traceback
-import datetime as dt
 import pymongo.database
 from pymongo import IndexModel, DESCENDING, ASCENDING
 from pymongo.errors import OperationFailure
-from threading import Event, Thread, Timer
+from threading import Event, Thread, Timer, _Timer
 
 import arrow
 import tradingtime as tt
@@ -320,18 +319,22 @@ class CtpGateway(Gateway):
     def close(self):
         """关闭"""
         self.stoped.set()
-        self.qryAccountTimer.close()
+
+        for v in self.__dict__.values():
+            # 取消定时器
+            if v.__class__ == _Timer:
+                v.cancel()
+
+        for v in self.__dict__.values():
+            # 等待永驻循环结束
+            if v.__class__ == Thread:
+                if v.isAlive():
+                    v.join(timeout=3)
 
         if self.mdConnected:
             self.mdApi.close()
         if self.tdConnected:
             self.tdApi.close()
-
-        # 等待进程完成
-        if self.queryForever.isAlive():
-            self.queryForever.join(timeout=3)
-        if self.saveForever.isAlive():
-            self.saveForever.join(timeout=3)
 
         # 停止心跳
         self.slavemReport.endHeartBeat()
@@ -406,4 +409,3 @@ class CtpGateway(Gateway):
                 foo()
             except Empty:
                 break
-

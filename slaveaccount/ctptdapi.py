@@ -559,12 +559,12 @@ class CtpTdApi(TdApi):
 
         transferSerial = VtTransferSerialData()
         transferSerial.gatewayName = self.gatewayName
-        print(data)
+
         # 转化日期
         tradingDay = data['TradingDay']
-        print(tradingDay)
+
         tradingDay = '{}-{}-{} 00:00:00+08'.format(tradingDay[:4], tradingDay[4:6], tradingDay[6:8])
-        print(tradingDay)
+
         transferSerial.tradingDay = arrow.get(tradingDay).datetime
 
         tradeDate = data['TradeDate']

@@ -1,46 +1,60 @@
 # coding:utf-8
+import os
 import signal
+import traceback
+import sys
+from threading import Event
 import logging.config
-from slaveaccount import CtpGateway
+from slaveaccount.ctpgateway import CtpGateway
 from pymongo import MongoClient
 
 import ConfigParser
 
-logging.config.fileConfig('/srv/slaveaccount/bin/logging.ini')
-config = ConfigParser.ConfigParser()
-read_ok = config.read('/srv/slaveaccount/bin/config.ini')
-userIDs = config.get('CTP', 'userIDs').split(',')
+if __debug__:
+    path = '/srv/slaveaccount/tmp/'
+else:
+    path = '/srv/slaveaccount/bin/'
 
-client = MongoClient(
-    config.get('mongodb', 'host'),
-    config.getint('mongodb', 'port'),
-)
-
-gateWays = []
-for userID in userIDs:
-    ctpGateway = CtpGateway(config, 'CTP', userID, client)
-    gateWays.append(ctpGateway)
-    ctpGateway.run()
-
-from threading import Event
-
-stoped = Event()
-count = 0
+logging.config.fileConfig(os.path.join(path, 'logging.ini'))
 
 
-def shutdownFunction(signalnum, frame):
-    logging.info(u'系统即将关闭')
-    for g in gateWays:
-        g.close()
+def main():
+    config = ConfigParser.ConfigParser()
+    config.read(os.path.join(path, 'config.ini'))
+    userIDs = config.get('CTP', 'userIDs').split(',')
 
-    if not stoped.isSet():
-        stoped.set()
+    client = MongoClient(
+        config.get('mongodb', 'host'),
+        config.getint('mongodb', 'port'),
+    )
+
+    gateWays = []
+    for userID in userIDs:
+        ctpGateway = CtpGateway(config, 'CTP', userID, client)
+        gateWays.append(ctpGateway)
+        ctpGateway.run()
+
+    stoped = Event()
+
+    def shutdownFunction(signalnum, frame):
+        logging.info(u'系统即将关闭')
+        for g in gateWays:
+            g.close()
+
+        if not stoped.isSet():
+            stoped.set()
+
+    for sig in [signal.SIGINT, signal.SIGHUP, signal.SIGTERM]:
+        signal.signal(sig, shutdownFunction)
+
+    while not stoped.wait(1):
+        pass
+
+    logging.info(u'系统完全关闭')
 
 
-for sig in [signal.SIGINT, signal.SIGHUP, signal.SIGTERM]:
-    signal.signal(sig, shutdownFunction)
-
-while not stoped.wait(1):
-    pass
-
-logging.info(u'系统完全关闭')
+if __name__ == '__main__':
+    try:
+        main()
+    except:
+        logging.error(traceback.format_exc())
