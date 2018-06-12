@@ -3,8 +3,6 @@ import arrow
 import pandas as pd
 import os
 from myplot.nav import draw_nav
-import matplotlib.pyplot as plt
-
 from .ctp import defineDict
 
 
@@ -137,6 +135,7 @@ class Navctp(object):
         """
         :return:
         """
+        import matplotlib.pyplot as plt
         # 绘制净值图
         path = self.config.get('CTP', 'navfigpath')
         with draw_nav(self.navDF['nav'], u'净值') as subplot:
