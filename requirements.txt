@@ -6,3 +6,4 @@ log4mongo
 tradingtime
 pandas
 matplotlib
+git+git://github.com/lamter/mydealutils.git#egg=mydealutils

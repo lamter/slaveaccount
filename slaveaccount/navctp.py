@@ -2,10 +2,11 @@
 import arrow
 import pandas as pd
 import os
+from myplot.nav import draw_nav
 import matplotlib.pyplot as plt
 
 from .ctp import defineDict
-from myplot.nav import draw_nav
+
 
 
 class Navctp(object):
