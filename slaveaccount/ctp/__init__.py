@@ -1,6 +1,9 @@
 # encoding: UTF-8
 
-from __future__ import absolute_import
-from .vnctpmd import MdApi
-from .vnctptd import TdApi
+import logging
 from .ctp_data_type import defineDict
+try:
+    from .vnctpmd import MdApi
+    from .vnctptd import TdApi
+except ImportError:
+    logging.warning(u'加载 cptapid 失败')
