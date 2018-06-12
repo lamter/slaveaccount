@@ -5,3 +5,4 @@ pymongo
 log4mongo
 tradingtime
 pandas
+matplotlib
