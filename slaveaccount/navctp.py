@@ -138,7 +138,7 @@ class Navctp(object):
         import matplotlib.pyplot as plt
         # 绘制净值图
         path = self.config.get('CTP', 'navfigpath')
-        lastNav = round(self.navDF['nav'].iloc[-1], 2)
+        lastNav = round(self.navDF['nav'].iloc[-1], 3)
         with draw_nav(self.navDF['nav'], u'净值 {}'.format(lastNav)) as subplot:
             fn = u'{}_nav.png'.format(self.userID)
             plt.savefig(os.path.join(path, fn))

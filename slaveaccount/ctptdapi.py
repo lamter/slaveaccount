@@ -546,7 +546,7 @@ class CtpTdApi(TdApi):
     def onRspQryTransferSerial(self, data, error, n, last):
         """响应查询转账记录"""
         if not data['InvestorID']:
-            # 没有任何转账记录
+            # j
             return
         _data = {}
         for k, v in data.items():
@@ -559,12 +559,12 @@ class CtpTdApi(TdApi):
 
         transferSerial = VtTransferSerialData()
         transferSerial.gatewayName = self.gatewayName
-
+        print(data)
         # 转化日期
         tradingDay = data['TradingDay']
-
+        print(tradingDay)
         tradingDay = '{}-{}-{} 00:00:00+08'.format(tradingDay[:4], tradingDay[4:6], tradingDay[6:8])
-
+        print(tradingDay)
         transferSerial.tradingDay = arrow.get(tradingDay).datetime
 
         tradeDate = data['TradeDate']
