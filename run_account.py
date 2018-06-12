@@ -16,7 +16,7 @@ else:
     path = '/srv/slaveaccount/bin/'
 
 logging.config.fileConfig(os.path.join(path, 'logging.ini'))
-
+logging.info('=======================')
 
 def main():
     config = ConfigParser.ConfigParser()

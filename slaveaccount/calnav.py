@@ -2,24 +2,25 @@
 '''
 盘尾进行净值计算的操作
 '''
+import traceback
 import pymongo
 import pymongo.database
 import logging
 from .navctp import Navctp
+from .dealutils import getColTZ
+
 
 class Calnav(object):
     def __init__(self, config, client):
-
         self.logger = logging.getLogger()
         self.config = config
-        self.clinet = client  # pymongo.MongoClient
+        self.client = client  # pymongo.MongoClient
         # 净值始末日期
-
 
     def dbConnect(self):
         self.logger.info(u'链接MongoDB')
         config = self.config
-        self.db = self.clinet[config.get('mongodb', 'dbn')]
+        self.db = self.client[config.get('mongodb', 'dbn')]
         assert isinstance(self.db, pymongo.database.Database)
         self.db.authenticate(
             config.get('mongodb', 'username'),
@@ -27,11 +28,11 @@ class Calnav(object):
         )
 
         # 检查链接是否成功
-        self.clinet.server_info()
+        self.client.server_info()
 
-        self.balanceMinCol = self.db['ctp_balance_min']  # 权益分钟线
-        self.balanceDailyCol = self.db['ctp_balance_daily']  # 收盘权益
-        self.transferSerialCol = self.db['transfer_serial']  # 转账记录
+        self.balanceMinCol = getColTZ(self.db['ctp_balance_min'])  # 权益分钟线
+        self.balanceDailyCol = getColTZ(self.db['ctp_balance_daily'])  # 收盘权益
+        self.transferSerialCol = getColTZ(self.db['transfer_serial'])  # 转账记录
 
     def calCtpNav(self):
         """
@@ -40,9 +41,11 @@ class Calnav(object):
         """
         userIDs = self.config.get('CTP', 'userIDs').split(',')
         for userID in userIDs:
-            n = Navctp(userID, self)
-            n.run()
-
+            try:
+                self.n = Navctp(userID, self)
+                self.n.run()
+            except Exception:
+                self.logger.error(traceback.format_exc())
 
     def run(self):
         """

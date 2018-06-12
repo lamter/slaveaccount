@@ -4,3 +4,4 @@ arrow
 pymongo
 log4mongo
 tradingtime
+pandas
