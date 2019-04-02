@@ -1,10 +1,12 @@
 # coding:utf-8
+import datetime
+import logging
 import arrow
 import pandas as pd
 import os
-from myplot.nav import draw_nav
+# from myplot.nav import draw_nav
 from .ctp import defineDict
-
+from pyecharts import Line, Bar, Grid
 
 
 class Navctp(object):
@@ -15,6 +17,7 @@ class Navctp(object):
     def __init__(self, userID, cal):
         self.userID = userID
         self.cal = cal
+        self.logger = logging.getLogger()
 
         d = arrow.get(self.config.get(self.userID, 'navtStartDate'))
         self.startDate = arrow.get('{} 00:00:00+08'.format(d.strftime('%Y-%m-%d'))).datetime
@@ -55,7 +58,7 @@ class Navctp(object):
             raise ValueError(u'没有任何权益数据')
 
         # 账户权益
-        self.balanceDF = pd.DataFrame((_ for _ in cursor)).set_index('tradingDay').sort_index()
+        self.balanceDF = pd.DataFrame((_ for _ in cursor)).set_index('tradingDay', drop=False).sort_index()
 
     def loadTransferSerial(self):
         """
@@ -106,8 +109,12 @@ class Navctp(object):
         计算净值回撤等
         :return:
         """
-        df = self.balanceDF[['balance']].copy()
-        df['transferSerial'] = self.transferSerialDF['tradeAmount']
+        df = self.balanceDF[['tradingDay', 'balance']].copy()
+
+        if self.transferSerialDF is None:
+            df['transferSerial'] = 0
+        else:
+            df['transferSerial'] = self.transferSerialDF['tradeAmount']
         # 没有出入金的交易日补0
         df['transferSerial'] = df['transferSerial'].fillna(0)
         # 将盘尾净值去掉出入金
@@ -135,29 +142,103 @@ class Navctp(object):
         """
         :return:
         """
+        path = self.config.get('CTP', 'navfigpath')
+        lastNav = round(self.navDF['nav'].iloc[-1], 3)
+
+        print(self.navDF.columns)
+        dates = self.navDF['tradingDay'].apply(lambda s: str(s.date()))
+
+        grid = Grid(u'净值-回撤', width=2000, height=1000)
+
+        l = Line(u'净值 {}'.format(lastNav))
+
+        l.add(
+            u'净值', dates, self.navDF['nav'].apply(lambda d:round(d,3)).values,
+            # yaxis_max='dataMax',
+            yaxis_min='dataMin',
+            mark_point=["max"],
+            #     line_color=,
+            is_legend_show=True,
+            line_width=2,
+            is_datazoom_show=True,
+        )
+
+        grid.add(l, grid_bottom='55%')
+
+        bar = Bar(u'回撤',title_top='50%')
+
+        bar.add(u'回撤', dates, self.navDF['dropdown'].apply(lambda d:round(d,3)).values,
+                # yaxis_max='dataMax',
+                # yaxis_min='dataMin',
+                mark_point=["min"],
+                mark_line=["average"],
+                is_legend_show=True,
+                legend_top='50%',
+                is_datazoom_show=True,
+                )
+
+        grid.add(bar, grid_top='55%')
+
+        fn = u'{}_nav.html'.format(self.userID)
+        _path = os.path.join(path, fn)
+        self.logger.info(u'生成净值 {}'.format(_path))
+        grid.render(_path)
+
+    def drowpng(self):
         import matplotlib.pyplot as plt
         # 绘制净值图
         path = self.config.get('CTP', 'navfigpath')
         lastNav = round(self.navDF['nav'].iloc[-1], 3)
         with draw_nav(self.navDF['nav'], u'净值 {}'.format(lastNav)) as subplot:
             fn = u'{}_nav.png'.format(self.userID)
-            plt.savefig(os.path.join(path, fn))
+            _path = os.path.join(path, fn)
+            plt.savefig(_path)
+            self.logger.info(u'生成净值 {}'.format(_path))
 
         # 绘制回撤图
         with draw_nav(self.navDF['dropdown'], u'回撤') as subplot:
             fn = u'{}_dropdown.png'.format(self.userID)
-            plt.savefig(os.path.join(path, fn))
+            _path = os.path.join(path, fn)
+            plt.savefig(_path)
+            self.logger.info(u'生成回撤 {}'.format(_path))
+
+    # def loadTransferSerialFromBalance(self):
+    #     """
+    #     从 balance daily 中生成初始入金
+    #     :return:
+    #     """
+    #     sql = {
+    #         'accountID': self.userID,
+    #         'tradingDay': {
+    #             '$gte': self.startDate - datetime.timedelta(days=15),
+    #             '$lte': self.startDate,
+    #         }
+    #     }
+    #     cursor = self.balanceDailyCol.find(sql, {'_id': 0})
+    #     if cursor.count() == 0:
+    #         raise ValueError(u'没有任何权益数据')
+    #
+    #     # 权益
+    #     balanceDF = pd.DataFrame((_ for _ in cursor)).sort_values('tradingDay').iloc[-1]
+    #     if balanceDF.shape[0] == 0:
+    #         raise ValueError(u'无法生成入金')
+    #
 
     def run(self):
         """
         计算净值
         :return:
         """
+        try:
+            # 读取出入金
+            self.loadTransferSerial()
+        except ValueError:
+            # 没有读取到出入金的信息
+            pass
+            # self.loadTransferSerialFromBalance()
+
         # 读取盘尾权益
         self.loadBalance()
-
-        # 读取出入金
-        self.loadTransferSerial()
 
         # 计算净值、回撤等
         self.calNav()

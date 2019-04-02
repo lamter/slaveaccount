@@ -330,6 +330,7 @@ class CtpTdApi(TdApi):
                            data['Commission'])
 
         # 推送
+        self.logger.info(u'权益 {Available}'.format(**data))
         self.gateway.onAccount(account)
 
     # ----------------------------------------------------------------------

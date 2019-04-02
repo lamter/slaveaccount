@@ -156,7 +156,7 @@ class CtpGateway(Gateway):
         self.mdApi.connect(self.userID, self.password, self.brokerID, self.mdAddress)
         self.tdApi.connect(self.userID, self.password, self.brokerID, self.tdAddress, self.authCode,
                            self.userProductInfo)
-
+        self.logger.info(u'链接成功')
         # 初始化并启动查询
         self.initQuery()
 
