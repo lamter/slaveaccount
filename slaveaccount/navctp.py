@@ -143,9 +143,8 @@ class Navctp(object):
         :return:
         """
         path = self.config.get('CTP', 'navfigpath')
-        lastNav = round(self.navDF['nav'].iloc[-1], 3)
+        lastNav = round(self.navDF['nav'].iloc[-1], 4)
 
-        print(self.navDF.columns)
         dates = self.navDF['tradingDay'].apply(lambda s: str(s.date()))
 
         grid = Grid(u'净值-回撤', width=2000, height=1000)

@@ -7,6 +7,7 @@ from threading import Event
 import logging.config
 from slaveaccount.ctpgateway import CtpGateway
 from pymongo import MongoClient
+from pymongo.errors import ServerSelectionTimeoutError
 
 import ConfigParser
 
@@ -15,7 +16,11 @@ if __debug__:
 else:
     path = '/srv/slaveaccount/bin/'
 
-logging.config.fileConfig(os.path.join(path, 'logging.ini'))
+try:
+    logging.config.fileConfig(os.path.join(path, 'logging.ini'))
+except ServerSelectionTimeoutError:
+    print(u'检查 logging.ini 的 host 配置')
+    raise
 logging.info('=======================')
 
 def main():
