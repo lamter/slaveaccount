@@ -143,7 +143,7 @@ class Navctp(object):
         :return:
         """
         path = self.config.get('CTP', 'navfigpath')
-        lastNav = round(self.navDF['nav'].iloc[-1], 4)
+        lastNav = round(self.navDF['nav'].iloc[-1], 3)
 
         dates = self.navDF['tradingDay'].apply(lambda s: str(s.date()))
 
