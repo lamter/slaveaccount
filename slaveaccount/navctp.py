@@ -149,13 +149,14 @@ class Navctp(object):
 
         grid = Grid(u'净值-回撤', width=2000, height=1000)
 
-        l = Line(u'净值 {}'.format(lastNav))
+        l = Line(u'净值')
 
+        nav = self.navDF['nav'].apply(lambda d: round(d, 3)).values
         l.add(
-            u'净值', dates, self.navDF['nav'].apply(lambda d:round(d,3)).values,
+            u'净值', dates, nav,
             # yaxis_max='dataMax',
             yaxis_min='dataMin',
-            mark_point=["max"],
+            mark_point=["max", {"coord":[dates.iloc[-1], nav[-1]], "name": u"最新"}],
             #     line_color=,
             is_legend_show=True,
             line_width=2,
@@ -166,14 +167,14 @@ class Navctp(object):
 
         bar = Bar(u'回撤',title_top='50%')
 
-        bar.add(u'回撤', dates, self.navDF['dropdown'].apply(lambda d:round(d,3)).values,
+        dropdown = self.navDF['dropdown'].apply(lambda d: round(d, 3)).values
+        bar.add(u'回撤', dates, dropdown,
                 # yaxis_max='dataMax',
                 # yaxis_min='dataMin',
-                mark_point=["min"],
-                mark_line=["average"],
+                mark_point=["min",{"coord":[dates.iloc[-1], dropdown[-1]], "name": u"最新"}],
                 is_legend_show=True,
                 legend_top='50%',
-                is_datazoom_show=True,
+                # is_datazoom_show=True,
                 )
 
         grid.add(bar, grid_top='55%')
