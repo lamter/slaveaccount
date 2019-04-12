@@ -22,13 +22,13 @@ class CtpMdApi(MdApi):
 
         self.subscribedSymbols = set()  # 已订阅合约代码
 
-        self.userID = u''  # 账号
-        self.password = u''  # 密码
-        self.brokerID = u''  # 经纪商代码
-        self.address = u''  # 服务器地址
+        self.userID = ''  # 账号
+        self.password = ''  # 密码
+        self.brokerID = ''  # 经纪商代码
+        self.address = ''  # 服务器地址
 
         self.tradingDt = None  # 交易日dt.datetime对象
-        self.tradingDate = u''  # 交易日期字符串
+        self.tradingDate = ''  # 交易日期字符串
         self.tickTime = None  # 最新行情time对象
 
     @property
@@ -66,7 +66,7 @@ class CtpMdApi(MdApi):
     # ----------------------------------------------------------------------
     def onRspError(self, error, n, last):
         """错误回报"""
-        log = u'{}'.format(error['ErrorID'])
+        log = '{}'.format(error['ErrorID'])
         log += error['ErrorMsg'].decode('gbk')
         self.logger.error(log)
         self.gateway.onError(error)
@@ -95,7 +95,7 @@ class CtpMdApi(MdApi):
 
         # 否则，推送错误信息
         else:
-            log = u'{}'.format(error['ErrorID'])
+            log = '{}'.format(error['ErrorID'])
             log += error['ErrorMsg'].decode('gbk')
             self.logger.error(log)
             self.gateway.onError(error)
@@ -112,7 +112,7 @@ class CtpMdApi(MdApi):
 
         # 否则，推送错误信息
         else:
-            log = u'{}'.format(error['ErrorID'])
+            log = '{}'.format(error['ErrorID'])
             log += error['ErrorMsg'].decode('gbk')
             self.logger.error(log)
             self.gateway.onError(error)
@@ -121,7 +121,7 @@ class CtpMdApi(MdApi):
     def onRspSubMarketData(self, data, error, n, last):
         """订阅合约回报"""
         if 'ErrorID' in error and error['ErrorID']:
-            log = u'{}'.format(error['ErrorID'])
+            log = '{}'.format(error['ErrorID'])
             log += error['ErrorMsg'].decode('gbk')
             self.logger.error(log)
             self.gateway.onError(error)

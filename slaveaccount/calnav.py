@@ -18,7 +18,7 @@ class Calnav(object):
         # 净值始末日期
 
     def dbConnect(self):
-        self.logger.info(u'链接MongoDB')
+        self.logger.info('链接MongoDB')
         config = self.config
         self.db = self.client[config.get('mongodb', 'dbn')]
         assert isinstance(self.db, pymongo.database.Database)

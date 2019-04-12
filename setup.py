@@ -8,13 +8,13 @@ def read(fname):
         return f.read()
 
 
-__version__ = "0.1.0"
+__version__ = "0.1.4"
 
 setup(
     name='slaveaccount',
     version=__version__,
-    keywords=u'',
-    description=u'',
+    keywords='',
+    description='',
     long_description=read("README.md"),
 
     url='https://github.com/lamter/slaveaccount',
@@ -27,6 +27,6 @@ setup(
     },
     install_requires=read("requirements.txt").splitlines(),
     classifiers=['Development Status :: 1 - Alpha',
-                 'Programming Language :: Python :: 2.7',
+                 'Programming Language :: Python :: 3.7',
                  'License :: OSI Approved :: MIT'],
 )

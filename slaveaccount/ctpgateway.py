@@ -10,22 +10,22 @@ import traceback
 import pymongo.database
 from pymongo import IndexModel, DESCENDING, ASCENDING
 from pymongo.errors import OperationFailure
-from threading import Event, Thread, Timer, _Timer
+from threading import Event, Thread, Timer
 
 import arrow
 import tradingtime as tt
 
 try:
-    from Queue import Queue, Empty
+    from queue import Queue, Empty
 except ImportError:
     from queue import Queue, Empty
 from slavem import Reporter
 
-from .gateway import Gateway
-from .constant import *
-from .ctpmdapi import CtpMdApi
-from .ctptdapi import CtpTdApi
-from .object import VtQuery, VtSaveMongodbData
+from slaveaccount.gateway import Gateway
+from slaveaccount.constant import *
+from slaveaccount.ctpmdapi import CtpMdApi
+from slaveaccount.ctptdapi import CtpTdApi
+from slaveaccount.object import VtQuery, VtSaveMongodbData
 
 
 ########################################################################
@@ -95,7 +95,7 @@ class CtpGateway(Gateway):
         建立数据库链接
         :return:
         """
-        self.logger.info(u'链接MongoDB')
+        self.logger.info('链接MongoDB')
         config = self.config
         self.db = self.clinet[config.get('mongodb', 'dbn')]
         assert isinstance(self.db, pymongo.database.Database)
@@ -156,7 +156,7 @@ class CtpGateway(Gateway):
         self.mdApi.connect(self.userID, self.password, self.brokerID, self.mdAddress)
         self.tdApi.connect(self.userID, self.password, self.brokerID, self.tdAddress, self.authCode,
                            self.userProductInfo)
-
+        self.logger.info('链接成功')
         # 初始化并启动查询
         self.initQuery()
 
@@ -320,12 +320,12 @@ class CtpGateway(Gateway):
         """关闭"""
         self.stoped.set()
 
-        for v in self.__dict__.values():
+        for v in list(self.__dict__.values()):
             # 取消定时器
-            if v.__class__ == _Timer:
+            if v.__class__ == Timer:
                 v.cancel()
 
-        for v in self.__dict__.values():
+        for v in list(self.__dict__.values()):
             # 等待永驻循环结束
             if v.__class__ == Thread:
                 if v.isAlive():
@@ -338,7 +338,7 @@ class CtpGateway(Gateway):
 
         # 停止心跳
         self.slavemReport.endHeartBeat()
-        self.logger.info(u'关闭心跳')
+        self.logger.info('关闭心跳')
 
     # ----------------------------------------------------------------------
     def initQuery(self):
