@@ -1,10 +1,10 @@
-# coding:utf-8
-import logging
-import os
-from pymongo import MongoClient
 import logging.config
+import os
+
+import configparser
+from pymongo import MongoClient
+
 from slaveaccount.calnav import Calnav
-import ConfigParser
 
 if __debug__:
     path = './tmp'
@@ -14,7 +14,7 @@ else:
 logging.config.fileConfig(os.path.join(path, 'logging.ini'))
 
 def main():
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     read_ok = config.read(os.path.join(path, 'config.ini'))
 
     client = MongoClient(
