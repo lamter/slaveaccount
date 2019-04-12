@@ -1,4 +1,3 @@
-# coding:utf-8
 import datetime
 import logging
 import arrow
@@ -55,7 +54,7 @@ class Navctp(object):
         }
         cursor = self.balanceDailyCol.find(sql, {'_id': 0})
         if cursor.count() == 0:
-            raise ValueError(u'没有任何权益数据')
+            raise ValueError('没有任何权益数据')
 
         # 账户权益
         self.balanceDF = pd.DataFrame((_ for _ in cursor)).set_index('tradingDay', drop=False).sort_index()
@@ -73,7 +72,7 @@ class Navctp(object):
         }
         cursor = self.transferSerialCol.find(sql, {'_id': 0})
         if cursor.count() == 0:
-            raise ValueError(u'没有任何出入金数据')
+            raise ValueError('没有任何出入金数据')
 
         # 出入金流水
         df = pd.DataFrame((_ for _ in cursor))
@@ -147,16 +146,16 @@ class Navctp(object):
 
         dates = self.navDF['tradingDay'].apply(lambda s: str(s.date()))
 
-        grid = Grid(u'净值-回撤', width=2000, height=1000)
+        grid = Grid('净值-回撤', width=2000, height=1000)
 
-        l = Line(u'净值')
+        l = Line('净值')
 
         nav = self.navDF['nav'].apply(lambda d: round(d, 3)).values
         l.add(
-            u'净值', dates, nav,
+            '净值', dates, nav,
             # yaxis_max='dataMax',
             yaxis_min='dataMin',
-            mark_point=["max", {"coord":[dates.iloc[-1], nav[-1]], "name": u"最新"}],
+            mark_point=["max", {"coord":[dates.iloc[-1], nav[-1]], "name": "最新"}],
             #     line_color=,
             is_legend_show=True,
             line_width=2,
@@ -165,13 +164,13 @@ class Navctp(object):
 
         grid.add(l, grid_bottom='55%')
 
-        bar = Bar(u'回撤',title_top='50%')
+        bar = Bar('回撤',title_top='50%')
 
         dropdown = self.navDF['dropdown'].apply(lambda d: round(d, 3)).values
-        bar.add(u'回撤', dates, dropdown,
+        bar.add('回撤', dates, dropdown,
                 # yaxis_max='dataMax',
                 # yaxis_min='dataMin',
-                mark_point=["min",{"coord":[dates.iloc[-1], dropdown[-1]], "name": u"最新"}],
+                mark_point=["min",{"coord":[dates.iloc[-1], dropdown[-1]], "name": "最新"}],
                 is_legend_show=True,
                 legend_top='50%',
                 # is_datazoom_show=True,
@@ -179,9 +178,9 @@ class Navctp(object):
 
         grid.add(bar, grid_top='55%')
 
-        fn = u'{}_nav.html'.format(self.userID)
+        fn = '{}_nav.html'.format(self.userID)
         _path = os.path.join(path, fn)
-        self.logger.info(u'生成净值 {}'.format(_path))
+        self.logger.info('生成净值 {}'.format(_path))
         grid.render(_path)
 
     def drowpng(self):
@@ -189,18 +188,18 @@ class Navctp(object):
         # 绘制净值图
         path = self.config.get('CTP', 'navfigpath')
         lastNav = round(self.navDF['nav'].iloc[-1], 3)
-        with draw_nav(self.navDF['nav'], u'净值 {}'.format(lastNav)) as subplot:
-            fn = u'{}_nav.png'.format(self.userID)
+        with draw_nav(self.navDF['nav'], '净值 {}'.format(lastNav)) as subplot:
+            fn = '{}_nav.png'.format(self.userID)
             _path = os.path.join(path, fn)
             plt.savefig(_path)
-            self.logger.info(u'生成净值 {}'.format(_path))
+            self.logger.info('生成净值 {}'.format(_path))
 
         # 绘制回撤图
-        with draw_nav(self.navDF['dropdown'], u'回撤') as subplot:
-            fn = u'{}_dropdown.png'.format(self.userID)
+        with draw_nav(self.navDF['dropdown'], '回撤') as subplot:
+            fn = '{}_dropdown.png'.format(self.userID)
             _path = os.path.join(path, fn)
             plt.savefig(_path)
-            self.logger.info(u'生成回撤 {}'.format(_path))
+            self.logger.info('生成回撤 {}'.format(_path))
 
     # def loadTransferSerialFromBalance(self):
     #     """

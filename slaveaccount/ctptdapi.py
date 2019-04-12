@@ -24,10 +24,10 @@ class CtpTdApi(TdApi):
         self.authStatus = False  # 验证状态
         self.loginFailed = False  # 登录失败（账号密码错误）
 
-        self.userID = u''  # 账号
-        self.password = u''  # 密码
-        self.brokerID = u''  # 经纪商代码
-        self.address = u''  # 服务器地址
+        self.userID = ''  # 账号
+        self.password = ''  # 密码
+        self.brokerID = ''  # 经纪商代码
+        self.address = ''  # 服务器地址
 
         self.frontID = 0  # 前置机编号
         self.sessionID = 0  # 会话编号
@@ -82,8 +82,8 @@ class CtpTdApi(TdApi):
 
             self.login()
         else:
-            log = u'{}'.format(error['ErrorID'])
-            log += error['ErrorMsg'].decode('gbk')
+            log = '{}'.format(error['ErrorID'])
+            log += error['ErrorMsg']#.decode('gbk')
             self.logger.error(log)
             self.gateway.onError(error)
 
@@ -108,8 +108,8 @@ class CtpTdApi(TdApi):
 
             # 否则，推送错误信息
         else:
-            log = u'{}'.format(error['ErrorID'])
-            log += error['ErrorMsg'].decode('gbk')
+            log = '{}'.format(error['ErrorID'])
+            log += error['ErrorMsg']#.decode('gbk')
             self.logger.error(log)
             self.gateway.onError(error)
 
@@ -128,8 +128,8 @@ class CtpTdApi(TdApi):
 
         # 否则，推送错误信息
         else:
-            log = u'{}'.format(error['ErrorID'])
-            log += error['ErrorMsg'].decode('gbk')
+            log = '{}'.format(error['ErrorID'])
+            log += error['ErrorMsg']#.decode('gbk')
             self.logger.error(log)
             self.gateway.onError(error)
 
@@ -165,7 +165,7 @@ class CtpTdApi(TdApi):
         # err = VtErrorData()
         # err.gatewayName = self.gatewayName
         # err.errorID = error['ErrorID']
-        # err.errorMsg = error['ErrorMsg'].decode('gbk')
+        # err.errorMsg = error['ErrorMsg']#.decode('gbk')
         # self.gateway.onError(err)
 
     # ----------------------------------------------------------------------
@@ -184,7 +184,7 @@ class CtpTdApi(TdApi):
         # err = VtErrorData()
         # err.gatewayName = self.gatewayName
         # err.errorID = error['ErrorID']
-        # err.errorMsg = error['ErrorMsg'].decode('gbk')
+        # err.errorMsg = error['ErrorMsg']#.decode('gbk')
         # self.gateway.onError(err)
 
     # ----------------------------------------------------------------------
@@ -301,7 +301,7 @@ class CtpTdApi(TdApi):
         # 查询回报结束
         if last:
             # 遍历推送
-            for pos in self.posDict.values():
+            for pos in list(self.posDict.values()):
                 self.gateway.onPosition(pos)
 
             # 清空缓存
@@ -330,7 +330,7 @@ class CtpTdApi(TdApi):
                            data['Commission'])
 
         # 推送
-        self.logger.info(u'权益 {Available}'.format(**data))
+        self.logger.info('权益 {Available}'.format(**data))
         self.gateway.onAccount(account)
 
     # ----------------------------------------------------------------------
@@ -372,7 +372,7 @@ class CtpTdApi(TdApi):
         contract.symbol = data['InstrumentID']
         contract.exchange = exchangeMapReverse[data['ExchangeID']]
         contract.vtSymbol = contract.symbol  # '.'.join([contract.symbol, contract.exchange])
-        contract.name = data['InstrumentName'].decode('GBK')
+        contract.name = data['InstrumentName']##.decode('GBK')
 
         # 合约数值
         contract.size = data['VolumeMultiple']
@@ -546,15 +546,11 @@ class CtpTdApi(TdApi):
     # ----------------------------------------------------------------------
     def onRspQryTransferSerial(self, data, error, n, last):
         """响应查询转账记录"""
-        if not data['InvestorID']:
-            # j
+        if 'InvestorID' not in data or not data['InvestorID']:
             return
         _data = {}
-        for k, v in data.items():
-            try:
-                u'{} {}'.format(k, v)
-            except UnicodeDecodeError:
-                v = v.decode('gbk')
+        for k, v in list(data.items()):
+            '{} {}'.format(k, v)
             _data[k] = v
         data = _data
 
@@ -620,7 +616,7 @@ class CtpTdApi(TdApi):
         """
         bankAccount = VtBankAccountData()
         bankAccount.bankAccount = data['BankAccount']
-        bankAccount.customerName = data['CustomerName'].decode('gbk')
+        bankAccount.customerName = data['CustomerName']##.decode('gbk')
         bankAccount.currencyID = data['CurrencyID']
         bankAccount.brokerBranchID = data['BrokerBranchID']
         bankAccount.bankID = data['BankID']
@@ -633,8 +629,8 @@ class CtpTdApi(TdApi):
     # ----------------------------------------------------------------------
     def onRspError(self, error, n, last):
         """错误回报"""
-        log = u'{}'.format(error['ErrorID'])
-        log += error['ErrorMsg'].decode('gbk')
+        log = '{}'.format(error['ErrorID'])
+        log += error['ErrorMsg']#.decode('gbk')
         self.logger.error(log)
         self.gateway.onError(error)
 
@@ -731,14 +727,14 @@ class CtpTdApi(TdApi):
         # err = VtErrorData()
         # err.gatewayName = self.gatewayName
         # err.errorID = error['ErrorID']
-        # err.errorMsg = error['ErrorMsg'].decode('gbk')
+        # err.errorMsg = error['ErrorMsg']#.decode('gbk')
         # self.gateway.onError(err)
 
     # ----------------------------------------------------------------------
     def onErrRtnOrderAction(self, data, error):
         """撤单错误回报（交易所）"""
-        log = u'{}'.format(error['ErrorID'])
-        log += error['ErrorMsg'].decode('gbk')
+        log = '{}'.format(error['ErrorID'])
+        log += error['ErrorMsg']#.decode('gbk')
         self.logger.error(log)
         self.gateway.onError(error)
 
@@ -1064,7 +1060,7 @@ class CtpTdApi(TdApi):
         self.reqID += 1
         amount = len(self.gateway.banks)
         count = 0
-        for bank in self.gateway.banks.values():
+        for bank in list(self.gateway.banks.values()):
             assert isinstance(bank, VtBankAccountData)
 
             req = {

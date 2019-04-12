@@ -4,7 +4,7 @@ import time
 from logging import INFO
 
 EMPTY_STRING = ''
-EMPTY_UNICODE = u''
+EMPTY_UNICODE = ''
 EMPTY_FLOAT = 0.
 EMPTY_INT = 0
 

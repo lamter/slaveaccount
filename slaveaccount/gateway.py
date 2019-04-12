@@ -16,7 +16,7 @@ class Gateway(object):
         """Constructor"""
 
         self.config = config
-        self.gatewayName = u'{}.{}'.format(gatewayName, userID)
+        self.gatewayName = '{}.{}'.format(gatewayName, userID)
         self.clinet = client  # pymongo.MongoClient
 
         self.logger = logging.getLogger(self.gatewayName)
@@ -68,9 +68,9 @@ class Gateway(object):
     # ----------------------------------------------------------------------
     def onPosition(self, position):
         """持仓信息推送"""
-        log = u''
-        for k, v in position.__dict__.items():
-            log += u'{}\t{}\n'.format(k, v)
+        log = ''
+        for k, v in list(position.__dict__.items()):
+            log += '{}\t{}\n'.format(k, v)
             # 更新持仓状态
             setattr(self.position, k, v)
             # self.logger.info(log)
@@ -88,9 +88,9 @@ class Gateway(object):
     # ----------------------------------------------------------------------
     def onAccount(self, account):
         """账户信息推送"""
-        log = u''
-        for k, v in account.__dict__.items():
-            log += u'{}\t{}\n'.format(k, v)
+        log = ''
+        for k, v in list(account.__dict__.items()):
+            log += '{}\t{}\n'.format(k, v)
             # 更新账号状态
             setattr(self.account, k, v)
         # self.logger.info(log)
@@ -164,9 +164,9 @@ class Gateway(object):
         :return:
         """
         assert isinstance(transferSerial, VtTransferSerialData)
-        log = u''
-        for k, v in transferSerial.__dict__.items():
-            log += u'{}\t{}\n'.format(k, v)
+        log = ''
+        for k, v in list(transferSerial.__dict__.items()):
+            log += '{}\t{}\n'.format(k, v)
 
         self.logger.info(log)
 
