@@ -4,7 +4,8 @@ import arrow
 import pandas as pd
 import os
 # from myplot.nav import draw_nav
-from .ctp import defineDict
+# from .ctp import defineDict
+from .ctp import *
 from pyecharts import Line, Bar, Grid
 
 
@@ -91,16 +92,16 @@ class Navctp(object):
     @staticmethod
     def tradeCode2(v):
         # 银行发起银行转期货
-        if defineDict["THOST_FTDC_FTC_BankLaunchBankToBroker"] == v:
+        if THOST_FTDC_FTC_BankLaunchBankToBroker == v:
             return -1
         # 期货发起银行转期货
-        if defineDict["THOST_FTDC_FTC_BrokerLaunchBankToBroker"] == v:
+        if THOST_FTDC_FTC_BrokerLaunchBankToBroker == v:
             return -1
         # 银行发起期货转银行
-        if defineDict["THOST_FTDC_FTC_BankLaunchBrokerToBank"] == v:
+        if THOST_FTDC_FTC_BankLaunchBrokerToBank == v:
             return 1
         # 期货发起期货转银行
-        if defineDict["THOST_FTDC_FTC_BrokerLaunchBrokerToBank"] == v:
+        if THOST_FTDC_FTC_BrokerLaunchBrokerToBank == v:
             return 1
 
     def calNav(self):

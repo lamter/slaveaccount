@@ -8,3 +8,4 @@ pandas
 # matplotlib
 # git+git://github.com/lamter/mydealutils.git#egg=mydealutils
 pyecharts
+pyecharts-snapshot
