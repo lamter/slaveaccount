@@ -77,7 +77,6 @@ class Navctp(object):
 
         # 出入金流水
         df = pd.DataFrame((_ for _ in cursor))
-
         # 统计每天累计的出入金
         # 出入金分辨
 
@@ -86,23 +85,25 @@ class Navctp(object):
         # 计算出入金总额
         df['tradeAmount'] *= df['intOut']
         df = df[['tradeAmount', 'tradingDay']]
+
+        df = df[df['tradingDay'] > self.startDate]
         df = df.groupby('tradingDay').sum().sort_index()
         self.transferSerialDF = df
 
     @staticmethod
     def tradeCode2(v):
-        # 银行发起银行转期货
+        # 银行发起 银行 -> 期货
         if THOST_FTDC_FTC_BankLaunchBankToBroker == v:
-            return -1
-        # 期货发起银行转期货
+            return 1
+        # 期货发起 银行 -> 期货
         if THOST_FTDC_FTC_BrokerLaunchBankToBroker == v:
-            return -1
-        # 银行发起期货转银行
+            return 1
+        # 银行发起 期货 -> 银行
         if THOST_FTDC_FTC_BankLaunchBrokerToBank == v:
-            return 1
-        # 期货发起期货转银行
+            return -1
+        # 期货发起 期货 -> 银行
         if THOST_FTDC_FTC_BrokerLaunchBrokerToBank == v:
-            return 1
+            return -1
 
     def calNav(self):
         """
@@ -115,10 +116,11 @@ class Navctp(object):
             df['transferSerial'] = 0
         else:
             df['transferSerial'] = self.transferSerialDF['tradeAmount']
+
         # 没有出入金的交易日补0
         df['transferSerial'] = df['transferSerial'].fillna(0)
         # 将盘尾净值去掉出入金
-        df['today'] = df['balance'] + df['transferSerial']
+        df['today'] = df['balance'] - df['transferSerial']
         df['pre'] = df['balance'].shift().fillna(method='bfill')
 
         # 净值和每天的增长率
@@ -234,6 +236,7 @@ class Navctp(object):
             self.loadTransferSerial()
         except ValueError:
             # 没有读取到出入金的信息
+            self.logger.info('没有读取到出入金的信息')
             pass
             # self.loadTransferSerialFromBalance()
 
