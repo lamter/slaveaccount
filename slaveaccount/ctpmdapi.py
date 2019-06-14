@@ -85,10 +85,6 @@ class CtpMdApi(MdApi):
             for subscribeReq in self.subscribedSymbols:
                 self.subscribe(subscribeReq)
 
-            # 获取交易日
-            # self.tradingDate = data['TradingDay']
-            # self.tradingDt = dt.datetime.strptime(self.tradingDate, '%Y%m%d')
-
             # 登录时通过本地时间来获取当前的日期
             self.tradingDt = dt.datetime.now()
             self.tradingDate = self.tradingDt.strftime('%Y%m%d')
@@ -96,7 +92,7 @@ class CtpMdApi(MdApi):
         # 否则，推送错误信息
         else:
             log = '{}'.format(error['ErrorID'])
-            log += error['ErrorMsg'].decode('gbk')
+            log += error['ErrorMsg']
             self.logger.error(log)
             self.gateway.onError(error)
 
@@ -113,7 +109,7 @@ class CtpMdApi(MdApi):
         # 否则，推送错误信息
         else:
             log = '{}'.format(error['ErrorID'])
-            log += error['ErrorMsg'].decode('gbk')
+            log += error['ErrorMsg']#.decode('gbk')
             self.logger.error(log)
             self.gateway.onError(error)
 
@@ -122,7 +118,7 @@ class CtpMdApi(MdApi):
         """订阅合约回报"""
         if 'ErrorID' in error and error['ErrorID']:
             log = '{}'.format(error['ErrorID'])
-            log += error['ErrorMsg'].decode('gbk')
+            log += error['ErrorMsg']#.decode('gbk')
             self.logger.error(log)
             self.gateway.onError(error)
 

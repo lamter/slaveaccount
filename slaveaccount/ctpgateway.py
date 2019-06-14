@@ -44,8 +44,8 @@ class CtpGateway(Gateway):
         self.tdAddress = config.get(userID, 'tdAddress')
         self.mdAddress = config.get(userID, 'mdAddress')
         self.db = None
-        self.authCode = None
-        self.userProductInfo = None
+        self.authCode = config.get(userID, 'authCode')
+        self.appID = config.get(userID, 'appID')
 
         self.mdApi = CtpMdApi(self)  # 行情API
         self.tdApi = CtpTdApi(self)  # 交易API
@@ -152,11 +152,15 @@ class CtpGateway(Gateway):
     def connect(self):
         """连接"""
 
+        # 如果json文件提供了验证码
+        if self.authCode:
+            self.tdApi.requireAuthentication = True
+
         # 创建行情和交易接口对象
         self.mdApi.connect(self.userID, self.password, self.brokerID, self.mdAddress)
-        self.tdApi.connect(self.userID, self.password, self.brokerID, self.tdAddress, self.authCode,
-                           self.userProductInfo)
+        self.tdApi.connect(self.userID, self.password, self.brokerID, self.tdAddress, self.authCode, self.appID)
         self.logger.info('链接成功')
+
         # 初始化并启动查询
         self.initQuery()
 

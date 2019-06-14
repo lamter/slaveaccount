@@ -76,6 +76,7 @@ class CtpTdApi(TdApi):
     def onRspAuthenticate(self, data, error, n, last):
         """验证客户端回报"""
         if error['ErrorID'] == 0:
+            self.logger.info('客户端验证成功')
             self.authStatus = True
 
             self.logger.info(TRADING_SERVER_AUTHENTICATED)
@@ -614,6 +615,9 @@ class CtpTdApi(TdApi):
         :param last:
         :return:
         """
+        if not data:
+            self.logger.info('没有银行数据')
+            return
         bankAccount = VtBankAccountData()
         bankAccount.bankAccount = data['BankAccount']
         bankAccount.customerName = data['CustomerName']##.decode('gbk')
@@ -964,14 +968,14 @@ class CtpTdApi(TdApi):
         pass
 
     # ----------------------------------------------------------------------
-    def connect(self, userID, password, brokerID, address, authCode, userProductInfo):
+    def connect(self, userID, password, brokerID, address, authCode, appID):
         """初始化连接"""
         self.userID = userID  # 账号
         self.password = password  # 密码
         self.brokerID = brokerID  # 经纪商代码
         self.address = address  # 服务器地址
         self.authCode = authCode  # 验证码
-        self.userProductInfo = userProductInfo  # 产品信息
+        self.appID = appID # 产品信息
 
         # 如果尚未建立服务器连接，则进行连接
         if not self.connectionStatus:
@@ -1018,12 +1022,12 @@ class CtpTdApi(TdApi):
 
     def authenticate(self):
         """申请验证"""
-        if self.userID and self.brokerID and self.authCode and self.userProductInfo:
+        if self.userID and self.brokerID and self.authCode and self.appID:
             req = {}
             req['UserID'] = self.userID
             req['BrokerID'] = self.brokerID
             req['AuthCode'] = self.authCode
-            req['UserProductInfo'] = self.userProductInfo
+            req['AppID'] = self.appID
             self.reqID += 1
             self.reqAuthenticate(req, self.reqID)
 
